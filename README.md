@@ -8,6 +8,8 @@ A thread-safe, ordered map implementation for Go with generics support.
 - Maintains insertion order
 - Supports Go generics
 - Simple and easy-to-use API
+- JSON support
+- Go v1.21+ required
 - MIT License
 
 ## Installation
@@ -46,12 +48,22 @@ go get github.com/zoppax/orderedmap
 
 - `Iterate(fn func(*Pair[K, V]) bool)` - Iterates over all pairs. Return false to stop iteration
 
+### JSON Support
+
+`OrderedMap` implements `json.Marshaler` and `json.Unmarshaler` interfaces, so you can use it directly with the standard library's `encoding/json` package.
+
+### Error Types
+
+- `ErrInvalidJSON` - Returned when JSON format is invalid
+- `ErrUnsupportedKeyType` - Returned when key type is not string
+
 ## Usage
 
 ```go
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/zoppax/orderedmap"
 )
@@ -94,6 +106,20 @@ func main() {
 	om2 := orderedmap.FromMap(m, keys)
 	fmt.Println("Keys:", om2.Keys())   // [z x y]
 	fmt.Println("Values:", om2.Values()) // [30 10 20]
+
+	// JSON Marshal
+	data, err := json.Marshal(om)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("JSON:", string(data))
+
+	// JSON Unmarshal
+	var om3 orderedmap.OrderedMap[string, int]
+	if err := json.Unmarshal(data, &om3); err != nil {
+		panic(err)
+	}
+	fmt.Println("Keys after unmarshal:", om3.Keys()) // [b a c]
 }
 ```
 
